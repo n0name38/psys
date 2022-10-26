@@ -5,7 +5,7 @@ INSTALL_FLAGS ?=
 
 NAME          := psys
 RPM_NAME      := python-$(NAME)
-VERSION       := $(shell $(PYTHON) setup.py --version)
+VERSION       := $(shell sed -n s/[[:space:]]*Version:[[:space:]]*//p $(RPM_NAME).spec)
 
 build:
 	$(PYTHON) setup.py build
@@ -17,11 +17,11 @@ dist: clean
 	$(PYTHON) setup.py sdist
 	mv dist/$(NAME)-*.tar.gz .
 
-sources:
-	@git archive --format=tar --prefix="$(NAME)-$(VERSION)/" \
+sources: clean
+	@git archive --format=tar --prefix=$(NAME)-$(VERSION)/ \
 		$(shell git rev-parse --verify HEAD) | gzip > $(NAME)-$(VERSION).tar.gz
 
-srpm: dist
+srpm: sources
 	rpmbuild -bs --define "_sourcedir $(CURDIR)" $(RPM_NAME).spec
 
 rpm: dist
